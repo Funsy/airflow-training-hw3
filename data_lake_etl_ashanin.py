@@ -30,3 +30,42 @@ ods_billing = DataProcHiveOperator(
     params={"job_suffix": randint(0, 100000)},
     region='europe-west3',
 )
+
+ods_issue = DataProcHiveOperator(
+    task_id='ods_issue',
+    dag=dag,
+    query="""
+        insert overwrite table ashanin.ods_billing partition (year='{{ execution_date.year }}') 
+        select * from ashanin.stg_billing where year(created_at) = {{ execution_date.year }};
+    """,
+    cluster_name='cluster-dataproc',
+    job_name=USERNAME + '_ods_issue_{{ execution_date.year }}_{{ params.job_suffix }}',
+    params={"job_suffix": randint(0, 100000)},
+    region='europe-west3',
+)
+
+ods_payment = DataProcHiveOperator(
+    task_id='ods_payment',
+    dag=dag,
+    query="""
+        insert overwrite table ashanin.ods_billing partition (year='{{ execution_date.year }}') 
+        select * from ashanin.stg_billing where year(created_at) = {{ execution_date.year }};
+    """,
+    cluster_name='cluster-dataproc',
+    job_name=USERNAME + '_ods_payment_{{ execution_date.year }}_{{ params.job_suffix }}',
+    params={"job_suffix": randint(0, 100000)},
+    region='europe-west3',
+)
+
+ods_traffic = DataProcHiveOperator(
+    task_id='ods_traffic',
+    dag=dag,
+    query="""
+        insert overwrite table ashanin.ods_billing partition (year='{{ execution_date.year }}') 
+        select * from ashanin.stg_billing where year(created_at) = {{ execution_date.year }};
+    """,
+    cluster_name='cluster-dataproc',
+    job_name=USERNAME + '_ods_traffic_{{ execution_date.year }}_{{ params.job_suffix }}',
+    params={"job_suffix": randint(0, 100000)},
+    region='europe-west3',
+)
