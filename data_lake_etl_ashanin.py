@@ -24,7 +24,8 @@ ods_billing = DataProcHiveOperator(
     query="""
         INSERT OVERWRITE TABLE ashanin.ods_billing PARTITION (year='{{ execution_date.year }}') 
         SELECT user_id, cast(billing_period as TIMESTAMP), service, tariff, cast(sum as INT), cast(created_at as TIMESTAMP) 
-        FROM ashanin.stg_billing WHERE year(created_at) = {{ execution_date.year }};
+        FROM ashanin.stg_billing 
+        WHERE year(created_at) = {{ execution_date.year }};
     """,
     cluster_name='cluster-dataproc',
     job_name=USERNAME + '_ods_billing_{{ execution_date.year }}_{{ params.job_suffix }}',
@@ -38,7 +39,8 @@ ods_issue = DataProcHiveOperator(
     query="""
         INSERT OVERWRITE TABLE ashanin.ods_issue PARTITION (year='{{ execution_date.year }}') 
         SELECT cast(user_id as INT), cast(start_time as TIMESTAMP), cast(end_time as TIMESTAMP), title, description, service 
-        FROM ashanin.stg_issue WHERE year(start_time) = {{ execution_date.year }};
+        FROM ashanin.stg_issue 
+        WHERE year(start_time) = {{ execution_date.year }};
     """,
     cluster_name='cluster-dataproc',
     job_name=USERNAME + '_ods_issue_{{ execution_date.year }}_{{ params.job_suffix }}',
@@ -52,7 +54,8 @@ ods_payment = DataProcHiveOperator(
     query="""
         INSERT OVERWRITE TABLE ashanin.ods_payment PARTITION (year='{{ execution_date.year }}') 
         SELECT user_id, pay_doc_type, pay_doc_num, account, phone, cast(billing_period as TIMESTAMP), cast(pay_date as TIMESTAMP), cast(sum as DECIMAL(10,2)) 
-        FROM ashanin.stg_payment WHERE year(pay_date) = {{ execution_date.year }};
+        FROM ashanin.stg_payment 
+        WHERE year(pay_date) = {{ execution_date.year }};
     """,
     cluster_name='cluster-dataproc',
     job_name=USERNAME + '_ods_payment_{{ execution_date.year }}_{{ params.job_suffix }}',
@@ -64,9 +67,10 @@ ods_traffic = DataProcHiveOperator(
     task_id='ods_traffic',
     dag=dag,
     query="""
-        INSERT OVERWRITE TABLE ashanin.ods_traffic PARTITION (year='2020') 
+        INSERT OVERWRITE TABLE ashanin.ods_traffic PARTITION (year='{{ execution_date.year }}') 
         SELECT user_id, cast(`timestamp` as TIMESTAMP), device_id, device_ip_addr, bytes_sent, bytes_recieved 
-        FROM ashanin.stg_traffic WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = 2020;
+        FROM ashanin.stg_traffic 
+        WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = {{ execution_date.year }};
     """,
     cluster_name='cluster-dataproc',
     job_name=USERNAME + '_ods_traffic_{{ execution_date.year }}_{{ params.job_suffix }}',
@@ -74,17 +78,20 @@ ods_traffic = DataProcHiveOperator(
     region='europe-west3',
 )
 
-ods_bytes_received_per_user = DataProcHiveOperator(
-    task_id='ods_bytes_received_per_user',
+dm_bytes_received_per_user = DataProcHiveOperator(
+    task_id='dm_bytes_received_per_user',
     dag=dag,
     query="""
-        INSERT OVERWRITE TABLE ashanin.ods_billing PARTITION (year='{{ execution_date.year }}') 
-        SELECT * from ashanin.dm_bytes_received WHERE year(created_at) = {{ execution_date.year }};
+        INSERT OVERWRITE TABLE ashanin.dm_bytes_received PARTITION (year='{{ execution_date.year }}') 
+        SELECT user_id, max(bytes_recieved) as 'max_traffic', min(bytes_recieved) as 'min_traffic', avg(bytes_recieved) as 'avg_traffic'
+        FROM ashanin.ods_traffic 
+        WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = {{ execution_date.year }} 
+        GROUP BY user_id;
     """,
     cluster_name='cluster-dataproc',
-    job_name=USERNAME + '_ods_bytes_received_per_user_{{ execution_date.year }}_{{ params.job_suffix }}',
+    job_name=USERNAME + '_dm_bytes_received_per_user_{{ execution_date.year }}_{{ params.job_suffix }}',
     params={"job_suffix": randint(0, 100000)},
     region='europe-west3',
 )
 
-ods_billing, ods_issue, ods_payment, ods_traffic >> ods_bytes_received_per_user
+ods_billing, ods_issue, ods_payment, ods_traffic >> dm_bytes_received_per_user
