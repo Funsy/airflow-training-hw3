@@ -35,25 +35,25 @@ INSERT OVERWRITE TABLE ashanin.ods_billing
 	PARTITION (year='2020') 
 	SELECT user_id, cast(concat(billing_period, '-01') as DATE), service, tariff, cast(sum as INT), cast(created_at as DATE) 
 	FROM ashanin.stg_billing 
-	WHERE year(created_at) = 2020;
+	WHERE year(created_at) = '2020';
 
 INSERT OVERWRITE TABLE ashanin.ods_issue 
 	PARTITION (year='2020') 
 	SELECT cast(user_id as INT), cast(start_time as TIMESTAMP), cast(end_time as TIMESTAMP), title, description, service 
 	FROM ashanin.stg_issue 
-	WHERE year(start_time) = 2020;
+	WHERE year(start_time) = '2020';
 
 INSERT OVERWRITE TABLE ashanin.ods_payment 
 	PARTITION (year='2020') 
 	SELECT user_id, pay_doc_type, pay_doc_num, account, phone, cast(concat(billing_period, '-01') as DATE), cast(pay_date as DATE), cast(sum as DECIMAL(10,2)) 
 	FROM ashanin.stg_payment 
-	WHERE year(pay_date) = 2020;
+	WHERE year(pay_date) = '2020';
 
 INSERT OVERWRITE TABLE ashanin.ods_traffic 
 	PARTITION (year='2020') 
 	SELECT user_id, cast(`timestamp` as TIMESTAMP), device_id, device_ip_addr, bytes_sent, bytes_received 
 	FROM ashanin.stg_traffic 
-	WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = 2020;
+	WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = '2020';
 
 
 -- создание DM таблицы
