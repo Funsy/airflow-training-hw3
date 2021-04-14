@@ -78,20 +78,20 @@ ods_traffic = DataProcHiveOperator(
     region='europe-west3',
 )
 
-dm_bytes_received_per_user = DataProcHiveOperator(
-    task_id='dm_bytes_received_per_user',
+dm_bytes_received = DataProcHiveOperator(
+    task_id='dm_bytes_received',
     dag=dag,
     query="""
         INSERT OVERWRITE TABLE ashanin.dm_bytes_received PARTITION (year='{{ execution_date.year }}') 
         SELECT user_id, max(bytes_received), min(bytes_received), cast(avg(bytes_received) as INT) 
         FROM ashanin.ods_traffic 
-        WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = '{{ execution_date.year }}' 
+        WHERE `year` = '{{ execution_date.year }}' 
         GROUP BY user_id;
     """,
     cluster_name='cluster-dataproc',
-    job_name=USERNAME + '_dm_bytes_received_per_user_{{ execution_date.year }}_{{ params.job_suffix }}',
+    job_name=USERNAME + '_dm_bytes_received_{{ execution_date.year }}_{{ params.job_suffix }}',
     params={"job_suffix": randint(0, 100000)},
     region='europe-west3',
 )
 
-ods_billing, ods_issue, ods_payment, ods_traffic >> dm_bytes_received_per_user
+ods_billing, ods_issue, ods_payment, ods_traffic >> dm_bytes_received
