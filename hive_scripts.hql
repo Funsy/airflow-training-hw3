@@ -66,5 +66,5 @@ CREATE EXTERNAL TABLE ashanin.dm_bytes_received (user_id INT, max_traffic INT, m
 INSERT OVERWRITE TABLE ashanin.dm_bytes_received PARTITION (year='{{ execution_date.year }}') 
     SELECT user_id, max(bytes_received), min(bytes_received), cast(avg(bytes_received) as INT) 
     FROM ashanin.ods_traffic 
-    WHERE year(from_unixtime(cast(`timestamp`/1000 as BIGINT))) = '{{ execution_date.year }}' 
+    WHERE `year` = '{{ execution_date.year }}' 
     GROUP BY user_id;
