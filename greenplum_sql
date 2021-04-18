@@ -1,6 +1,6 @@
-create external table ashanin.stg_payment (user_id bigint, 
+create external table ashanin.stg_payment (user_id int, 
       pay_doc_type text, 
-      pay_doc_num bigint, 
+      pay_doc_num int, 
       account text, 
       phone text, 
       billing_period date, 
