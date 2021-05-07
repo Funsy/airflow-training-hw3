@@ -369,7 +369,7 @@ default_args = {
 }
 
 dag = DAG(
-    username + '.dwh_etl',
+    username + '_dwh_etl',
     default_args=default_args,
     description='Data Warehouse ETL tasks',
     schedule_interval="0 0 1 1 *",
