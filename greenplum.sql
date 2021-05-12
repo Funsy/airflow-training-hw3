@@ -42,3 +42,46 @@ CREATE VIEW "rtk_de"."ashanin"."ods_v_payment" AS (
 
 	FROM "rtk_de"."ashanin"."ods_payment");
       
+-- создаем HUB'ы
+create table ashanin.dds_hub_account (account_pk TEXT, 
+	account_key VARCHAR, 
+	load_date TIMESTAMP, 
+	record_source VARCHAR);
+create table ashanin.dds_hub_billing_period (billing_period_pk TEXT, 
+	billing_period_key VARCHAR, 
+	load_date TIMESTAMP, 
+	record_source VARCHAR);
+create table ashanin.dds_hub_pay_doc (pay_doc_pk TEXT, 
+	pay_doc_type_key VARCHAR, 
+	pay_doc_num_key VARCHAR, 
+	load_date TIMESTAMP, 
+	record_source VARCHAR);
+create table ashanin.dds_hub_user (user_pk TEXT, 
+	user_key VARCHAR, 
+	load_date TIMESTAMP, 
+	record_source VARCHAR);
+
+-- создаем LINK'и
+create table ashanin.dds_link_user_account_billing_pay (user_account_billing_pay_pk TEXT, 
+	user_pk TEXT,
+	account_pk TEXT,
+	billing_period_pk TEXT,
+	pay_doc_pk TEXT,
+	load_date TIMESTAMP, 
+	record_source VARCHAR);
+
+-- создаем SAT'ы
+create table ashanin.dds_sat_pay_details (user_account_billing_pay_pk TEXT, 
+	pay_doc_hashdiff TEXT,
+	pay_date DATE,
+	sum NUMERIC(10,2),
+	effective_from DATE,
+	load_date TIMESTAMP, 
+	record_source VARCHAR);
+
+create table ashanin.dds_sat_user_details (user_pk TEXT, 
+	user_hashdiff TEXT,
+	phone VARCHAR,
+	effective_from DATE,
+	load_date TIMESTAMP,
+	record_source VARCHAR);
