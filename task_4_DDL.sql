@@ -10,6 +10,20 @@ create external table ashanin.stg_payment (user_id int,
   location ('pxf://rt-2021-03-25-16-47-29-sfunu-ashanin/data_lake/stg/payment/*/?PROFILE=gs:parquet') 
   FORMAT 'CUSTOM' (FORMATTER='pxfwritable_import');
 
+-- создаем ODS слой
+create table ashanin.ods_payment (user_id INT,
+	pay_doc_type TEXT, 
+	pay_dco_num INT,
+	account TEXT,
+	phone TEXT,
+	billing_period DATE,
+	pay_date DATE,
+	sum NUMERIC(10,2));
+
+-- переносим данные из STG в ODS
+insert into ashanin.ods_payment
+	select * from ashanin.stg_payment;
+
 -- создаем VIEW
 CREATE VIEW "rtk_de"."ashanin"."ods_v_payment" AS (
 	SELECT
@@ -41,7 +55,7 @@ CREATE VIEW "rtk_de"."ashanin"."ods_v_payment" AS (
 	    pay_date AS EFFECTIVE_FROM
 
 	FROM "rtk_de"."ashanin"."ods_payment");
-      
+
 -- создаем HUB'ы
 create table ashanin.dds_hub_account (account_pk TEXT, 
 	account_key VARCHAR, 
