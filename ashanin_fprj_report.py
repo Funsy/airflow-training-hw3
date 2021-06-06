@@ -1,6 +1,5 @@
 from datetime import timedelta, datetime
 from random import randint
-
 from airflow import DAG
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.dummy_operator import DummyOperator
@@ -14,16 +13,16 @@ SQL_CONTEXT = {
                 select 
                       legal_type,
                       district,
-                      extract(year from registered_at) as registration_year,
+                      extract(year from registered_at)  as registration_year,
                       is_vip,
-                      extract(year from to_date(BILLING_PERIOD_KEY, 'YYYY-MM')) as billing_year,
-                      sum as billing_sum
+                      sum as billing_sum,
+                      extract(year from to_date(BILLING_PERIOD_KEY, 'YYYY-MM'))  as billing_year
                 from ashanin.fprj_dds_link_user_account_billing_pay luabp 
                 join ashanin.fprj_dds_hub_billing_period hbp on luabp.BILLING_PERIOD_PK = hbp.BILLING_PERIOD_PK
-                join ashanin.fprj_dds_sat_pay_details spd  on luabp.USER_ACCOUNT_BILLING_PAY_PK = spd.USER_ACCOUNT_BILLING_PAY_PK
-                left join ashanin.fprj_dds_sat_user_mdm_details sumd on luabp.USER_PK = sumd.USER_PK
+                join ashanin.fprj_dds_sat_pay_details ddspd on luabp.user_account_billing_pay_pk  =  ddspd.user_account_billing_pay_pk
+                join ashanin.fprj_dds_hub_user hu  on luabp.USER_PK = hu.USER_PK
+                left join ashanin.fprj_ods_mdm_users sumd on  hu.user_key = sumd.id::text
                 where extract(year from to_date(BILLING_PERIOD_KEY, 'YYYY-MM')) = {{ execution_date.year }}			
-
               )		
               select billing_year, legal_type, district, registration_year, is_vip, sum(billing_sum)
               from raw_data
@@ -57,7 +56,7 @@ SQL_CONTEXT = {
                     insert into ashanin.fprj_payment_report_dim_registration_year(registration_year_key)
                     select distinct registration_year as registration_year_key 
                     from ashanin.fprj_payment_report_tmp_{{ execution_date.year }} a
-                    left join ashanin.fprj_payment_report_dim_registration_year b on b.registration_year_key = a.registration_year
+                    left join ashanin.fprj_payment_report_dim_registration_year b on b.registration_year_key = a.registration_year::text
                     where b.registration_year_key is null;
             """},
     'FACTS': {
@@ -67,6 +66,7 @@ SQL_CONTEXT = {
                                 legal_type_id,
                                 district_id,
                                 registration_year_id,
+                               
                                 is_vip,
                                 sum 
                             )
@@ -75,7 +75,7 @@ SQL_CONTEXT = {
                     join ashanin.fprj_payment_report_dim_billing_year biy on raw.billing_year = biy.billing_year_key
                     join ashanin.fprj_payment_report_dim_legal_type lt on raw.legal_type = lt.legal_type_key
                     join ashanin.fprj_payment_report_dim_district d on raw.district = d.district_key
-                    join ashanin.fprj_payment_report_dim_registration_year ry on raw.registration_year = ry.registration_year_key; 
+                    join ashanin.fprj_payment_report_dim_registration_year ry on raw.registration_year::text = ry.registration_year_key; 
             """},
     'DROP_PAYMENT_REPORT_TMP_ONE_YEAR': """
           drop table if exists ashanin.fprj_payment_report_tmp_{{ execution_date.year }};
