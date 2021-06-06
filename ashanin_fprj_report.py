@@ -6,6 +6,7 @@ from airflow.operators.dummy_operator import DummyOperator
 
 # SQL Scripts definition
 
+
 SQL_CONTEXT = {
     'LOAD_PAYMENT_REPORT_TMP_ONE_YEAR': """
            create table ashanin.fprj_payment_report_tmp_{{ execution_date.year }} as
