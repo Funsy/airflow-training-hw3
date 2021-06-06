@@ -371,7 +371,7 @@ default_args = {
 dag = DAG(
     username + '_fprj_etl',
     default_args=default_args,
-    description='Data Warehouse ETL tasks',
+    description='fprj Data Warehouse ETL tasks',
     schedule_interval="0 0 1 1 *",
     concurrency=1,
     max_active_runs=1,
